@@ -4,15 +4,45 @@
 require 'rubygems'
 require 'twitter'
 
-module ActionTweet # TODO
+class ActionTweet
 
   include Action
+
+  attr_accessor :payload
+
+  def initialize q = nil
+
+    super
+
+    @name = "Tweet"
+    @docs = "[TODO]"
+    @payload = nil
+
+  end
+
+  def act q = nil
+
+    cached_payload = payload
+    if !cached_payload then return "#{@host.name} has no payload." end
+    if !account then return "#{@host.name} has no account." end
+    if !File.exist?("#{host.path}/secret.#{account}.config.rb") then return "#{@host.name} has no config file." end
+
+    load "#{host.path}/secret.#{account}.config.rb"
+
+    client = Twitter::REST::Client.new($twitter_config)
+    client.update(cached_payload)
+
+    return "#{@host.name} tweeted \"#{cached_payload}\"."
+
+  end
+
+  #
 
   def tweet content
     
     tweet_client.update(content)
 
-    return "#{@actor.twitter_account} tweeted: #{content}"
+    return "#{@actor.twitter_account} tweeted: \"#{content}\""
 
   end
 
@@ -23,13 +53,6 @@ module ActionTweet # TODO
     client.update(content, in_reply_to_status_id: origin.id)
 
     if follow == true then client.follow(origin.user.screen_name) end
-
-  end
-
-  def tweet_client
-
-    require "#{$nataniev.path}/secrets/secret.#{@actor.twitter_account}.config.rb"
-    return Twitter::REST::Client.new($twitter_config)
 
   end
 
